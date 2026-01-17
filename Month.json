@@ -1,0 +1,1360 @@
+{
+  "name": "1 Month",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                5
+              ],
+              "triggerAtHour": 14
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -192,
+        32
+      ],
+      "id": "35855c3a-eb77-4fc7-88b2-6d032d228aca"
+    },
+    {
+      "parameters": {
+        "url": "https://app.asana.com/api/1.0/workspaces",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "asanaOAuth2Api",
+        "options": {}
+      },
+      "name": "Get Workspaces",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        32
+      ],
+      "id": "110db505-e723-4778-8614-e415d09e4b1d",
+      "credentials": {
+        "asanaOAuth2Api": {
+          "id": "KA5vICPK59TS8l0F",
+          "name": "Asana account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "workspace_gid",
+              "value": "={{ $json.data[0].gid }}",
+              "type": "string",
+              "id": "f1c3d899-41b1-4182-bb7e-346f82f1e4a5"
+            },
+            {
+              "name": "afterISO",
+              "value": "={{ $now.minus({ days: 30 }).toISO() }}",
+              "type": "string",
+              "id": "0d01e6c7-e24e-4707-8048-e8958df0820e"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Prep Vars",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        256,
+        32
+      ],
+      "id": "fdaabcfd-09ee-44ac-8f8b-de4149dc6540"
+    },
+    {
+      "parameters": {
+        "url": "https://app.asana.com/api/1.0/projects",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "asanaOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "workspace",
+              "value": "={{ $json.workspace_gid }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Projects",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        32
+      ],
+      "id": "2517f106-ad71-417e-a16f-b7f2e9207913",
+      "credentials": {
+        "asanaOAuth2Api": {
+          "id": "KA5vICPK59TS8l0F",
+          "name": "Asana account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "name": "Split Projects",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        704,
+        32
+      ],
+      "id": "a52de278-3bb5-4017-9eb8-80c49db48175"
+    },
+    {
+      "parameters": {
+        "amount": 3,
+        "unit": "seconds"
+      },
+      "name": "Wait 2s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        928,
+        32
+      ],
+      "id": "992a50c6-2db6-4ac5-ad30-27e573bbd827",
+      "webhookId": "9acaaeff-cadd-426a-8f81-140b5fc2f4dd"
+    },
+    {
+      "parameters": {
+        "url": "https://app.asana.com/api/1.0/tasks",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "asanaOAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "project",
+              "value": "={{ $json.gid }}"
+            },
+            {
+              "name": "created_after",
+              "value": "={{ $('Prep Vars').item.json.afterISO }}"
+            },
+            {
+              "name": "limit",
+              "value": "100"
+            },
+            {
+              "name": "opt_fields",
+              "value": "gid,name,assignee,assignee.gid,assignee.name,assignee.email, completed,completed_at,due_on,created_at,modified_at, created_by,created_by.gid,created_by.name,created_by.email"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Tasks",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1152,
+        32
+      ],
+      "id": "25e076c7-40f0-4d9e-ad8f-2179aa65c97b",
+      "credentials": {
+        "asanaOAuth2Api": {
+          "id": "KA5vICPK59TS8l0F",
+          "name": "Asana account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "name": "Split Tasks",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1376,
+        32
+      ],
+      "id": "2478d5c9-e80b-483e-9f9c-9232c0dbf6f4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "task_gid",
+              "value": "={{ $json.gid }}",
+              "type": "string",
+              "id": "89a7f3fb-3dc0-4e34-8d22-732fe3afc1c2"
+            },
+            {
+              "name": "task_name",
+              "value": "={{ $json.name }}",
+              "type": "string",
+              "id": "b6d3479a-d402-4968-a59b-25e5cc8e8ce0"
+            },
+            {
+              "name": "assignee_name",
+              "value": "={{ $json.assignee?.name || '' }}",
+              "type": "string",
+              "id": "ffb96b15-a03a-4289-8dd4-4f00cb23c624"
+            },
+            {
+              "name": "assignee_email",
+              "value": "={{ $json.assignee?.email || '' }}",
+              "type": "string",
+              "id": "d47295ae-9a1a-487f-84a9-04d409759546"
+            },
+            {
+              "name": "join_gid",
+              "value": "={{ String($json.assignee?.gid || '').trim() }}",
+              "type": "string",
+              "id": "a0d3fd38-d998-405c-a585-5e56ef2ae05b"
+            },
+            {
+              "id": "1df75655-59b1-4eea-8203-0b955030711c",
+              "name": "completed",
+              "value": "={{ $json.completed }}",
+              "type": "boolean"
+            },
+            {
+              "id": "c983dfb0-2da3-4665-aa0e-2ab920e0c811",
+              "name": "created_at",
+              "value": "={{ $json.created_at }}",
+              "type": "string"
+            },
+            {
+              "id": "5f432d19-42d8-47a6-b57d-7a26ccce62f4",
+              "name": "due_on",
+              "value": "={{ $json.due_on }}",
+              "type": "string"
+            },
+            {
+              "id": "f612dcf3-23e6-400e-8ba4-eeac592853d5",
+              "name": "completed_at",
+              "value": "={{ $json.completed_at }}",
+              "type": "string"
+            },
+            {
+              "id": "8512b075-a525-4c67-a2b4-0910d9d4052b",
+              "name": "creator_gid",
+              "value": "={{ $json.created_by.gid }}",
+              "type": "string"
+            },
+            {
+              "id": "dbd9b7f6-25fa-4b1a-ac08-6da2976ac7bd",
+              "name": "created_by.email",
+              "value": "={{ $json.created_by.email }}",
+              "type": "string"
+            },
+            {
+              "id": "e150f7c2-a1ce-4b8c-a8f1-527a60973b49",
+              "name": "created_by.name",
+              "value": "={{ $json.created_by.name }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Shape Task Row",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1584,
+        32
+      ],
+      "id": "93db75ca-bb36-4f6e-9c19-c5e65badfbd6"
+    },
+    {
+      "parameters": {
+        "url": "https://app.asana.com/api/1.0/workspaces/1167983615638934/users",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "asanaOAuth2Api",
+        "sendQuery": true,
+        "specifyQuery": "json",
+        "jsonQuery": "={\n  \"limit\": 200,\n  \"opt_fields\": \"gid,name,email\"\n}\n",
+        "options": {}
+      },
+      "name": "Get Users",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        320
+      ],
+      "id": "68950bdf-57b7-4b0f-8f77-86b09823a0e4",
+      "credentials": {
+        "asanaOAuth2Api": {
+          "id": "KA5vICPK59TS8l0F",
+          "name": "Asana account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "name": "Split Users",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1824,
+        320
+      ],
+      "id": "abd17760-6efe-4e9c-845a-b5aa8e77fb31"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "name": "join_gid",
+              "value": "={{ String($json.gid || '').trim() }}",
+              "type": "string",
+              "id": "77af9cd6-8192-4a6c-b454-4afa0ab5d5db"
+            },
+            {
+              "name": "user_name",
+              "value": "={{ $json.name }}",
+              "type": "string",
+              "id": "f246aaba-850e-4323-af7c-cd4eef42bdc3"
+            },
+            {
+              "name": "user_email",
+              "value": "={{ $json.email }}",
+              "type": "string",
+              "id": "9d8a9fa3-8bf4-48d7-b026-ca79282cb59f"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Shape User Row",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2048,
+        320
+      ],
+      "id": "8d7afd00-b585-479c-9d91-d6bc9ab5a7cc"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "task_gid",
+        "joinMode": "enrichInput1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2272,
+        224
+      ],
+      "id": "831d29da-ab7c-4fa5-8747-4bd9187f980e",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ip2Gv40LDunriiXa5w1NQXDd0sOL-yP-7PQQflTyIfA",
+          "mode": "list",
+          "cachedResultName": "N8N Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ip2Gv40LDunriiXa5w1NQXDd0sOL-yP-7PQQflTyIfA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1844367391,
+          "mode": "list",
+          "cachedResultName": "Performance_monthly",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ip2Gv40LDunriiXa5w1NQXDd0sOL-yP-7PQQflTyIfA/edit#gid=1844367391"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "assignee_email": "={{ $json.assignee_email }}",
+            "done": "={{ $json.done_assigned }}",
+            "completion_rate": "={{ $json.completion_rate_assigned }}",
+            "days_present": "={{ $json.days_present }}",
+            "attendance_rate": "={{ $json.attendance_score }}",
+            "Very Delay": "={{ $json.veryDelayed }}",
+            "Delays": "={{ $json.delays }}",
+            "Created": "={{ $json.created }}",
+            "Total Handled": "={{ $json.total_handled }}",
+            "Total_days": "={{ $json.workdays_in_window }}",
+            "Late Arrival": "={{ $json.late_arrivals }}",
+            "On time": "={{ $json.ontime }}",
+            "Penalty": "={{ $json.penalties }}",
+            "Execution_Score": "={{ $json.execution_30days }}",
+            "WES_SCORE": "={{ $json.WES_monthly }}",
+            "Goals_completion_score": "={{ $json.goal_completion_score }}",
+            "assigned": "={{ $json.assigned }}"
+          },
+          "matchingColumns": [
+            "assignee_email"
+          ],
+          "schema": [
+            {
+              "id": "assignee_email",
+              "displayName": "assignee_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "assigned",
+              "displayName": "assigned",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total Handled",
+              "displayName": "Total Handled",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "done",
+              "displayName": "done",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "On time",
+              "displayName": "On time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Delays",
+              "displayName": "Delays",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Very Delay",
+              "displayName": "Very Delay",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Penalty",
+              "displayName": "Penalty",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Total_days",
+              "displayName": "Total_days",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "days_present",
+              "displayName": "days_present",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Late Arrival",
+              "displayName": "Late Arrival",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "completion_rate",
+              "displayName": "completion_rate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "attendance_rate",
+              "displayName": "attendance_rate",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Execution_Score",
+              "displayName": "Execution_Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Goals_completion_score",
+              "displayName": "Goals_completion_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "WES_SCORE",
+              "displayName": "WES_SCORE",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3680,
+        176
+      ],
+      "id": "7682da76-afc0-46e3-a33e-cc7607996279",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tWuNqd2CfSKtlG3R",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== Monthly Execution Score (Assigned Tasks Only, penalties at the end) =====\n\n// Define scoring weights\nconst VOL_WEIGHT = 40;\nconst COMPLETION_WEIGHT = 20;\nconst ONTIME_WEIGHT = 40;\n\n// Penalties\nconst PENALTY_DELAY = 2; // 2% per delayed task (<=24h)\nconst PENALTY_VERY = 5;  // 5% per very delayed task (>24h)\n\n// Minimum tasks per month (fixed)\nconst MIN_TASKS_MONTH = 100;\n\n// Small helper functions\nconst num = (v) => (v === '' || v == null || isNaN(Number(v))) ? 0 : Number(v);\nconst clamp01 = (x) => Math.max(0, Math.min(1, x));\n\nfor (const { json: a } of items) {\n\n  // ---- Volume Calculation ----\n  const assigned = num(a.assigned);\n  const totalHandled = (a.total_handled != null) ? num(a.total_handled) : assigned;\n\n  // Volume attainment (0-1)\n  const a_v = clamp01(totalHandled / MIN_TASKS_MONTH);\n\n  // ---- Completion Calculation (Assigned Tasks Only) ----\n  const doneAssigned = num(a.done_assigned);\n  const compRate = assigned ? (doneAssigned / assigned) : 0; // completion rate (0-1)\n\n  // ---- On-time Calculation (Assigned Tasks Only) ----\n  const ontime = num(a.ontime);\n  const delays = num(a.delays);\n  const veryDelayed = num(a.veryDelayed);\n  const timedDoneAssigned = ontime + delays + veryDelayed;\n\n  const ontimeRate = timedDoneAssigned ? (ontime / timedDoneAssigned) : 0; // on-time rate (0-1)\n\n  // ---- Component Scores (untouched by penalties) ----\n  const volumeScore = a_v * VOL_WEIGHT;\n  const completionScore = a_v * compRate * COMPLETION_WEIGHT;\n  const ontimeScore = a_v * ontimeRate * ONTIME_WEIGHT;\n\n  // ---- Penalty Calculation ----\n  const penaltyDelay = delays * PENALTY_DELAY;\n  const penaltyVeryDelayed = veryDelayed * PENALTY_VERY;\n  const totalPenalty = penaltyDelay + penaltyVeryDelayed;\n\n  // ---- Final Execution Score ----\n  let executionScore = volumeScore + completionScore + ontimeScore - totalPenalty;\n  executionScore = Math.max(0, Math.min(100, executionScore)); // cap 0-100\n\n  // ---- Output / Audit Fields ----\n  a.volume_attainment = +a_v.toFixed(4);\n  a.target_min_tasks = MIN_TASKS_MONTH;\n  a.volumeScore = +volumeScore.toFixed(2);\n  a.completionScore = +completionScore.toFixed(2);\n  a.ontimeScore = +ontimeScore.toFixed(2);\n  a.penalties = +totalPenalty.toFixed(2);\n  a.execution_score_gated = +executionScore.toFixed(2); // final execution score\n\n  // Legacy name for downstream\n  a.execution_score = a.execution_score_gated;\n}\n\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2496,
+        224
+      ],
+      "id": "16aff5ad-6416-4316-9e46-53c37967e2fd",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "assignee_email",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "name": "Merge Weekly (tasks+attendance)",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2720,
+        64
+      ],
+      "id": "e27817e0-707a-46e1-b042-58c5c75df8c1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== Attendance (LAST 30 DAYS, LOCAL) – compute hours from in/out =====\nconst WORK_DAYS = [1,2,3,4,5];            // Mon–Fri\nconst LATE_CUTOFF_MIN = 10*60 + 30;       // 10:30\n\n// ---- rolling 30-day window (LOCAL) ----\n(function () {\n  const now  = new Date();\n  const end  = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999);\n  const start= new Date(end); start.setDate(end.getDate() - 29); start.setHours(0,0,0,0);\n  global.WSTART = start;\n  global.WEND   = end;\n})();\n\nfunction inWindowLocal(d){ return d >= global.WSTART && d <= global.WEND; }\nfunction ymdLocal(d){\n  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');\n  return `${y}-${m}-${dd}`;\n}\n\n// workdays in window\nlet workdays = 0;\n{ const d = new Date(global.WSTART);\n  while (d <= global.WEND) { if (WORK_DAYS.includes(d.getDay())) workdays++; d.setDate(d.getDate()+1); }\n}\n\n// ---------- helpers ----------\nconst nz = v => (v==null || v==='') ? null : v;\nconst nk = k => String(k||'').toLowerCase().replace(/[^a-z0-9]/g,'');\n\nfunction get(row, names){\n  if (!row.__map){ row.__map = {}; for (const [k,v] of Object.entries(row)) row.__map[nk(k)] = v; }\n  for (const n of names){ const v = row.__map[nk(n)]; if (v !== undefined) return v; }\n  return undefined;\n}\nfunction parseClockToMin(s){\n  if (s == null) return null;\n  const str = String(s).trim();\n\n  // AM/PM\n  let m = str.match(/^(\\d{1,2}):([0-5]\\d)(?::([0-5]\\d))?\\s*([APap][Mm])$/);\n  if (m){\n    let h=+m[1], mm=+m[2], ss=m[3]?+m[3]:0; const ap=m[4].toUpperCase();\n    if (ap==='PM' && h!==12) h+=12; if (ap==='AM' && h===12) h=0;\n    return h*60+mm+Math.floor(ss/60);\n  }\n  // 24h\n  m = str.match(/^(\\d{1,2}):([0-5]\\d)(?::([0-5]\\d))?$/);\n  if (m){ const h=+m[1], mm=+m[2], ss=m[3]?+m[3]:0; return h*60+mm+Math.floor(ss/60); }\n  // not a time\n  return null;\n}\nfunction dateKey(cell){\n  const s = String(cell||'').trim();\n  const m = s.match(/^(\\d{4})[-\\/](\\d{2})[-\\/](\\d{2})/);\n  if (m) return `${m[1]}-${m[2]}-${m[3]}`;\n  const d = new Date(s); if (!isNaN(d)) return ymdLocal(d);\n  return null;\n}\n\n// key: email|YYYY-MM-DD → {present, earliestIn, minutes}\nconst dayMap = new Map();\n\nfor (const { json } of items) {\n  const email = String(get(json, ['Email ID','Email','email','assignee_email'])||'').trim().toLowerCase();\n  if (!email) continue;\n\n  const dKey  = dateKey(get(json, ['Date','date','timestamp']));\n  if (!dKey) continue;\n\n  const dt = new Date(dKey + 'T00:00:00'); // local day\n  if (!inWindowLocal(dt) || !WORK_DAYS.includes(dt.getDay())) continue;\n\n  const key = `${email}|${dKey}`;\n  if (!dayMap.has(key)) dayMap.set(key, { present:false, earliestIn:null, minutes:0 });\n  const rec = dayMap.get(key);\n\n  const inRaw  = nz(get(json, ['Check-in Time','Check in','Checkin','In','In Time']));\n  const outRaw = nz(get(json, ['Check-out Time','Check out','Checkout','Out','Out Time']));\n\n  const inMin  = parseClockToMin(inRaw);\n  const outMin = parseClockToMin(outRaw);\n\n  if (inMin != null) {\n    rec.present = true;\n    if (rec.earliestIn == null || inMin < rec.earliestIn) rec.earliestIn = inMin;\n  }\n\n  // compute minutes strictly from in/out when both exist\n  if (inMin != null && outMin != null) {\n    let diff = outMin - inMin;\n    if (diff < 0) diff += 24*60;   // wrap overnight\n    if (diff > 0) rec.minutes += diff;\n  }\n}\n\n// roll up per email\nconst by = new Map(); // email → {present:Set, late, totalMin}\nfor (const [k, rec] of dayMap) {\n  const [email, d] = k.split('|');\n  if (!by.has(email)) by.set(email, { present:new Set(), late:0, totalMin:0 });\n  const a = by.get(email);\n\n  if (rec.present) {\n    a.present.add(d);\n    if (rec.earliestIn != null && rec.earliestIn > LATE_CUTOFF_MIN) a.late++;\n  }\n  a.totalMin += rec.minutes;\n}\n\nconst out = [];\nfor (const [email, a] of by) {\n  const days_present = a.present.size;\n  const off_days = Math.max(0, workdays - days_present);\n\n  let score = workdays ? (days_present / workdays) * 100 : 0;\n  let pen = 0;\n  pen += a.late * 5;\n  if (a.late > 2) pen += 10;\n  if (off_days > 1) pen += (off_days - 1) * 15;\n  score = Math.max(0, Math.min(100, score - pen));\n\n  // avg earliest check-in\n  let avg_checkin = null;\n  { let sum=0, n=0;\n    for (const [k, rec] of dayMap) {\n      const [em, d] = k.split('|'); if (em !== email) continue;\n      if (rec.present && rec.earliestIn != null){ sum += rec.earliestIn; n++; }\n    }\n    if (n>0){ const avg=Math.round(sum/n); const hh=String(Math.floor(avg/60)).padStart(2,'0'); const mm=String(avg%60).padStart(2,'0'); avg_checkin=`${hh}:${mm}`; }\n  }\n\n  out.push({ json: {\n    assignee_email: email,\n    window_start: ymdLocal(global.WSTART),\n    window_end:   ymdLocal(global.WEND),\n    workdays_in_window: workdays,\n\n    days_present,\n    late_arrivals: a.late,\n    off_days,\n    total_hours_30d: +(a.totalMin/60).toFixed(2),\n    avg_checkin_30d: avg_checkin,\n    attendance_score_30d: +score.toFixed(2),\n\n    // legacy names for downstream nodes\n    month_start: ymdLocal(global.WSTART),\n    month_end:   ymdLocal(global.WEND),\n    workdays_in_month: workdays,\n    attendance_score_monthly: +score.toFixed(2),\n  }});\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        -544
+      ],
+      "id": "649fbc1d-4073-47ed-a926-070b9082cce4",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(({ json }) => {\n  const num = v => (v === '' || v == null || isNaN(Number(v))) ? 0 : Number(v);\n  const pick = (o, ks) => ks.find(k => o[k] !== undefined && o[k] !== null && o[k] !== '');\n\n  const exec = num(json.execution_30days ?? json.execution_monthly ?? json.execution_90days ?? 0);\n  const att  = num(json.attendance_score ?? json.attendance_score_30d ?? json.attendance_score_monthly ?? 0);\n  const goals = num(json.goal_completion_score ?? 0);   // <-- no fallback to completion_rate\n\n  const WES_monthly = +(0.45*exec + 0.45*goals + 0.10*att).toFixed(2);\n\n  return {\n    json: {\n      ...json,\n      WES_monthly,\n      wes_exec_component: +(0.45*exec).toFixed(2),\n      wes_goals_component: +(0.45*goals).toFixed(2),\n      wes_att_component:   +(0.10*att).toFixed(2),\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3440,
+        112
+      ],
+      "id": "d0e05e0e-b000-4b9b-9ab4-bbd14b81c8c6",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ip2Gv40LDunriiXa5w1NQXDd0sOL-yP-7PQQflTyIfA",
+          "mode": "list",
+          "cachedResultName": "N8N Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ip2Gv40LDunriiXa5w1NQXDd0sOL-yP-7PQQflTyIfA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1250257325,
+          "mode": "list",
+          "cachedResultName": "Monthly_Task_Details",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ip2Gv40LDunriiXa5w1NQXDd0sOL-yP-7PQQflTyIfA/edit#gid=1250257325"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Task_ID": "={{ $json.task_gid }}",
+            "Task_name": "={{ $json.task_name }}",
+            "Assignee_email": "={{ $json.assignee_email }}",
+            "Assignee_name": "={{ $json.assignee_name }}",
+            "join_gid": "={{ $json.join_gid }}",
+            "completed": "={{ $json.completed }}",
+            "created on": "={{ $json.created_at }}",
+            "due date ": "={{ $json.due_on }}",
+            "completed on": "={{ $json.completed_at }}",
+            "Created by": "={{ $json.created_by }}"
+          },
+          "matchingColumns": [
+            "Task_ID"
+          ],
+          "schema": [
+            {
+              "id": "Task_ID",
+              "displayName": "Task_ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Task_name",
+              "displayName": "Task_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Assignee_email",
+              "displayName": "Assignee_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Assignee_name",
+              "displayName": "Assignee_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "join_gid",
+              "displayName": "join_gid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "completed",
+              "displayName": "completed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created on",
+              "displayName": "created on",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "due date ",
+              "displayName": "due date ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created by",
+              "displayName": "Created by",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "completed on",
+              "displayName": "completed on",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2352,
+        -48
+      ],
+      "id": "6dca22c9-3cbc-4261-a50b-a0265c754937",
+      "name": "Append or update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tWuNqd2CfSKtlG3R",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const end = new Date();\nend.setUTCHours(23, 59, 59, 999);\n\nconst start = new Date(end);\nstart.setUTCDate(start.getUTCDate() - 30);   // exactly 30 days back\nstart.setUTCHours(0, 0, 0, 0);\n\nfunction inLast30Days(iso) {\n  const d = new Date(iso);\n  return !isNaN(d) && d >= start && d <= end;\n}\n\nconst filtered = items.filter(({ json }) => inLast30Days(json.created_at));\nreturn filtered;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        -16
+      ],
+      "id": "5446873d-fa67-42bb-aa07-ce047daa0d84",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== Execution (LAST 30 DAYS) — Volume 40 / Completion 20 / On-time 40 =====\n\n// ---------- window: rolling last 30 days (inclusive, UTC) ----------\nconst end = new Date();\nend.setUTCHours(23, 59, 59, 999);\n\nconst start = new Date(end);\nstart.setUTCDate(start.getUTCDate() - 29);\nstart.setUTCHours(0, 0, 0, 0);\n\nfunction inUTCWindow(iso) {\n  const d = new Date(iso);\n  return !isNaN(d) && d >= start && d <= end;\n}\n\n// ---------- helpers ----------\nconst WORK_DAYS = [1,2,3,4,5]; // Mon–Fri\nlet workdays = 0;\n{\n  const d = new Date(start);\n  while (d <= end) {\n    if (WORK_DAYS.includes(d.getUTCDay())) workdays++;\n    d.setUTCDate(d.getUTCDate() + 1);\n  }\n}\n\nfunction toDateOnlyUTC(s) {\n  if (!s) return null;\n  const d = new Date(s);\n  return isNaN(d) ? null : new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));\n}\nfunction dateOnlyUTC(d) { return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())); }\nconst MS_PER_DAY = 86400000;\n\n// ---------- scoring constants (per spec) ----------\nconst VOL_WEIGHT        = 40;\nconst COMPLETION_WEIGHT = 20;\nconst ONTIME_WEIGHT     = 40;\n\nconst PENALTY_DELAY = 2;  // -2 for delayed (≤24h late)\nconst PENALTY_VERY  = 5;  // -5 for very delayed (>24h late)\n\n// Full credit target: 25 tasks per *work week* → scale by #workdays/5 over the window\nconst MIN_TASKS = Math.max(25 * (workdays / 5), 1);\n\n// ---------- aggregate by person (email) ----------\nconst by = new Map();\n\nfunction ensure(email, name = 'Unassigned') {\n  const key = (email || '').trim().toLowerCase();\n  if (!key) return;\n  if (!by.has(key)) {\n    by.set(key, {\n      person_email: key,\n      person_name:  name,\n\n      // volumes\n      assigned: 0,\n      created:  0,\n\n      // completion parts\n      done_assigned: 0,\n      done_created:  0,\n      done_both:     0,  // self-assigned overlap\n\n      // timeliness from assigned tasks\n      ontime: 0,\n      delays: 0,\n      veryDelayed: 0,\n      timed_done_assigned: 0, // ontime + delays + veryDelayed\n    });\n  }\n}\n\n// === main loop over input rows ===\nfor (const { json:t } of items) {\n  const assigneeEmail = (t.assignee_email || '').toLowerCase().trim();\n  const assigneeName  = t.assignee_name || 'Unassigned';\n\n  const creatorEmail  = (t.created_by?.email || t.creator_email || '').toLowerCase().trim();\n  const creatorName   = (t.created_by?.name  || t.creator_name  || '') || 'Unknown';\n\n  // include a task if it touches the window by created OR completed OR due\n  const createdAt   = t.created_at || t.createdAt || t.created_at_iso;\n  const completedAt = t.completed_at || t.completedAt || t.completed_at_iso;\n  const dueOnStr    = t.due_on || t.dueOn; // YYYY-MM-DD (date-only)\n\n  const dueOnly = toDateOnlyUTC(dueOnStr);\n  const touchesWindow =\n    inUTCWindow(createdAt) ||\n    inUTCWindow(completedAt) ||\n    (dueOnly && dueOnly >= toDateOnlyUTC(start.toISOString()) && dueOnly <= toDateOnlyUTC(end.toISOString()));\n\n  if (!touchesWindow) continue;\n\n  ensure(assigneeEmail, assigneeName);\n  ensure(creatorEmail,  creatorName);\n\n  // volumes\n  if (creatorEmail)  by.get(creatorEmail).created  += 1;\n  if (assigneeEmail) by.get(assigneeEmail).assigned += 1;\n\n  // completion + timeliness (when completed)\n  const completed =\n    t.completed === true || String(t.completed).toLowerCase() === 'true';\n\n  if (completed && completedAt) {\n    if (assigneeEmail) by.get(assigneeEmail).done_assigned += 1;\n    if (creatorEmail)  by.get(creatorEmail).done_created  += 1;\n\n    // self-assigned overlap\n    if (assigneeEmail && creatorEmail && assigneeEmail === creatorEmail) {\n      by.get(assigneeEmail).done_both += 1;\n    }\n\n    // timeliness (assigned only, only when a due date exists)\n    if (assigneeEmail && dueOnStr) {\n      const a = by.get(assigneeEmail);\n      const due  = toDateOnlyUTC(dueOnStr);\n      const done = new Date(completedAt);\n      if (due && !isNaN(done)) {\n        const diffDays = (dateOnlyUTC(done) - due) / MS_PER_DAY;\n        if (diffDays <= 0) a.ontime += 1;\n        else if (diffDays <= 1) a.delays += 1;\n        else a.veryDelayed += 1;\n        a.timed_done_assigned += 1;\n      }\n    }\n  }\n}\n\n// ---------- compute scores & emit ----------\nconst out = [];\n\nfor (const a of by.values()) {\n  const total_handled = a.assigned + a.created;\n  // handled union: avoid double-counting self-assigned\n  const done_handled  = a.done_assigned + a.done_created - a.done_both;\n\n  // --- component scores ---\n  // 1) Volume (uses Total Handled)\n  const volumeBase  = total_handled;\n  const volumeScore = Math.min(volumeBase / MIN_TASKS, 1) * VOL_WEIGHT;\n\n  // 2) Completion (handled union)\n  const compRate        = total_handled ? (done_handled / total_handled) : 0;\n  const completionScore = compRate * COMPLETION_WEIGHT;\n\n  // 3) On-time (assigned only; denominator = tasks with due-date → timed_done_assigned)\n  const ontimeDen   = a.timed_done_assigned;\n  const ontimeRate  = ontimeDen ? (a.ontime / ontimeDen) : 0;\n  const ontimeScore = ontimeRate * ONTIME_WEIGHT;\n\n  // Penalties reduce V + C + O\n  const penalties = (a.delays * PENALTY_DELAY) + (a.veryDelayed * PENALTY_VERY);\n\n  const baseBeforePen = volumeScore + completionScore + ontimeScore;\n  let execution_30days = Math.max(0, Math.min(100, baseBeforePen - penalties));\n\n  out.push({\n    json: {\n      assignee_email: a.person_email,\n      person_name:  a.person_name,\n\n      window_start: start.toISOString().slice(0,10),\n      window_end:   end.toISOString().slice(0,10),\n      workdays_in_window: workdays,\n\n      // volumes\n      created: a.created,\n      assigned: a.assigned,\n      total_handled,\n\n      // completions\n      done_assigned: a.done_assigned,\n      done_created:  a.done_created,\n      done_both:     a.done_both,\n      done_handled,\n\n      // completion rates\n      completion_rate_assigned: (a.assigned ? +(a.done_assigned / a.assigned * 100).toFixed(2) : 0),\n      completion_rate_handled:  (total_handled ? +(done_handled / total_handled * 100).toFixed(2) : 0),\n\n      // timeliness (assigned)\n      ontime: a.ontime,\n      delays: a.delays,\n      veryDelayed: a.veryDelayed,\n      timed_done_assigned: a.timed_done_assigned,\n\n      // scores\n      volumeScore:       +volumeScore.toFixed(2),\n      completionScore:   +completionScore.toFixed(2),\n      ontimeScore:       +ontimeScore.toFixed(2),\n      penalties:         +penalties.toFixed(2),\n      base_before_pen:   +baseBeforePen.toFixed(2),\n      execution_30days:  +execution_30days.toFixed(2),\n    }\n  });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        128
+      ],
+      "id": "a4090b42-be88-4700-931c-76242dd7ccd4",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "jsCode": "function normKey(k) {\n  return String(k || \"\")\n    .toLowerCase()\n    .replace(/[^a-z0-9]/g, \"\");\n}\n\nfunction buildNormRow(row) {\n  const nr = {};\n  for (const [k, v] of Object.entries(row || {})) {\n    const nk = normKey(k);\n    if (nr[nk] == null || nr[nk] === \"\") nr[nk] = v;\n  }\n  return nr;\n}\n\nfunction toNumber(x) {\n  if (x == null) return 0;\n  const n = Number(String(x).trim().replace(/[, ]+/g, \"\"));\n  return Number.isFinite(n) ? n : 0;\n}\n\nfunction excelSerialToDate(serial) {\n  const ms = (Number(serial) - 25569) * 86400 * 1000;\n  return new Date(ms);\n}\n\nfunction parseMonthInfo(v) {\n  if (v == null || v === \"\") return null;\n  let d;\n\n  if (typeof v === \"number\" && Number.isFinite(v)) {\n    d = excelSerialToDate(v);\n  } else {\n    const s = String(v).trim();\n    const m = s.match(/^([A-Za-z]+),?\\s+(\\d{4})$/);\n    if (m) {\n      const tryDate = Date.parse(`1 ${m[1]} ${m[2]}`);\n      if (!Number.isNaN(tryDate)) d = new Date(tryDate);\n    }\n    if (!d) {\n      const tryDate2 = Date.parse(s);\n      if (!Number.isNaN(tryDate2)) d = new Date(tryDate2);\n    }\n  }\n\n  if (!d || isNaN(d.getTime())) return null;\n\n  const y = d.getUTCFullYear();\n  const mIdx = d.getUTCMonth();\n  const start = new Date(Date.UTC(y, mIdx, 1));\n  const end = new Date(Date.UTC(y, mIdx + 1, 0));\n\n  return {\n    key: `${y}-${String(mIdx + 1).padStart(2, \"0\")}`,\n    label: start.toLocaleString(\"en-US\", { month: \"long\", year: \"numeric\", timeZone: \"UTC\" }),\n    startISO: start.toISOString().slice(0, 10),\n    endISO: end.toISOString().slice(0, 10),\n  };\n}\n\nfunction pick(row, keys) {\n  for (const k of keys) {\n    if (row[k] != null && row[k] !== \"\") return row[k];\n  }\n}\n\n// ---- MAIN ----\nconst raw = items.map(i => i.json || {});\nconst rows = raw.map(buildNormRow);\n\n// 🔹 Hardcode July 2025 as target\nconst target = parseMonthInfo(\"July 2025\");\nif (!target) throw new Error(\"Invalid target month: July 2025\");\n\n// Filter rows for July 2025 only\nconst monthRows = rows.filter(r => {\n  const mi = parseMonthInfo(pick(r, [\"date\"]));\n  return mi && mi.key === target.key;\n});\n\nconst grouped = new Map();\nfor (const r of monthRows) {\n  const email = String(pick(r, [\"emailid\",\"email\"]) || \"\").trim();\n  if (!email) continue;\n\n  const goal = toNumber(pick(r, [\"goal\",\"goals\"]));\n  const score = toNumber(pick(r, [\"score\",\"scores\"]));\n\n  if (!grouped.has(email)) {\n    grouped.set(email, {\n      assignee_email: email,\n      month_label: target.label,\n      month_start: target.startISO,\n      month_end: target.endISO,\n      goal_points_target: 0,\n      goal_points_acquired: 0,\n    });\n  }\n  const g = grouped.get(email);\n  g.goal_points_target += goal;\n  g.goal_points_acquired += score;\n}\n\n// Compute %\nconst out = [];\nfor (const g of grouped.values()) {\n  const pct = g.goal_points_target > 0\n    ? Math.round((g.goal_points_acquired / g.goal_points_target) * 100)\n    : 0;\n  out.push({ json: { ...g, goal_completion_score: Math.max(0, Math.min(100, pct)) } });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2704,
+        -368
+      ],
+      "id": "67a867c8-0780-4df6-b28c-e8f95f131501",
+      "name": "Code5"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "assignee_email",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3168,
+        16
+      ],
+      "id": "000462b2-6d00-4e3e-b7b3-4b03ca755d58",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all()\n  // keep only Current = YES (case/space safe)\n  .filter(({ json }) =>\n    String(json['Current'] || '').trim().toUpperCase() === 'YES'\n  )\n  // project only the columns you want (and rename if you like)\n  .map(({ json }) => ({\n    json: {\n      employee_id: json['Employee ID'],\n      name:        json['Name'],\n      assignee_email:       json['assignee_email'],\n      password:    json['Password'],\n      schedule:    json['Schedule'],\n      current:     json['Current'],\n    }\n  }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        -752
+      ],
+      "id": "3a913f89-1d2f-4f4c-a504-aaf859ff74d2",
+      "name": "Code6"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "assignee_email",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2640,
+        -688
+      ],
+      "id": "429427b0-1919-4e60-b5de-d0b6098e0ddb",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Expect each item to have attendance roll-up + employee schedule.\n// Required: workdays_in_window, off_days, late_arrivals, assignee_email (or email), schedule\n// Hours: any one of total_hours, total_hours_30d, total_hours_7d (in HOURS)\n\nfunction normSchedule(s) {\n  const t = String(s || '').toLowerCase().trim();\n  if (t.includes('full')) return 'full-time';\n  if (t.includes('part')) return 'part-time';\n  return 'unknown';\n}\n\nfunction pickNumber(obj, keys, def = 0) {\n  for (const k of keys) {\n    if (obj[k] !== undefined && obj[k] !== null && obj[k] !== '') {\n      const n = Number(obj[k]);\n      if (Number.isFinite(n)) return n;\n    }\n  }\n  return def;\n}\n\nconst VOL_WEIGHT    = 33; // not used here, but keeping symmetry with your docs\nconst COMP_WEIGHT   = 33; // ditto\nconst ONTIME_WEIGHT = 34; // ditto\n\nconst LATE_PENALTY_PER = 5;   // -5 per late (FT only)\nconst LATE_EXTRA_AFTER2 = 10; // extra -10 if > 2 lates (FT only)\nconst OFFDAY_PENALTY_PER = 15; // -15 for each off after first (all)\n\nconst out = [];\n\nfor (const { json } of items) {\n  const email = (json.assignee_email || json.email || '').toLowerCase().trim();\n\n  // Window + raw inputs\n  const wd = pickNumber(json, ['workdays_in_window', 'workdays_in_month'], 0);     // workdays\n  const offDays = pickNumber(json, ['off_days'], 0);\n  const lates   = pickNumber(json, ['late_arrivals', 'late_count'], 0);\n\n  // Hours (in HOURS). We'll choose the first present key:\n  const totalHours = pickNumber(json, ['total_hours', 'total_hours_30d', 'total_hours_7d'], 0);\n\n  // Schedule\n  const scheduleRaw = json.schedule || json.Schedule;\n  const schedule = normSchedule(scheduleRaw);\n\n  // Target hours by schedule (dynamic with actual workdays in window)\n  const targetHours = schedule === 'part-time'\n    ? 4 * wd   // 4h/day\n    : 8 * wd;  // 8h/day (default for full-time & unknown)\n\n  // Component: Hours score (50 pts)\n  const hoursRatio = targetHours > 0 ? Math.min(totalHours / targetHours, 1) : 0;\n  const hoursScore50 = 50 * hoursRatio;\n\n  // Component: Check-in (50 pts) — full-time only\n  const checkinScore50 = (schedule === 'full-time') ? 50 : 0;\n\n  // Penalties\n  let latePenalty = 0;\n  if (schedule === 'full-time') {\n    latePenalty = (lates * LATE_PENALTY_PER) + (lates > 2 ? LATE_EXTRA_AFTER2 : 0);\n  }\n  const offdayPenalty = Math.max(0, offDays - 1) * OFFDAY_PENALTY_PER;\n\n  const totalPenalty = latePenalty + offdayPenalty;\n\n  // Final attendance score\n  let attendanceScore = checkinScore50 + hoursScore50 - totalPenalty;\n  if (!Number.isFinite(attendanceScore)) attendanceScore = 0;\n  attendanceScore = Math.max(0, Math.min(100, attendanceScore));\n\n  out.push({\n    json: {\n      // identity\n      days_present: json.days_present,\n      Working_days: json.workdays_in_month,\n      assignee_email: email,\n      schedule: scheduleRaw,\n\n      // window passthrough (if present)\n      window_start: json.window_start,\n      window_end:   json.window_end,\n      workdays_in_window: wd,\n\n      // raw metrics\n      total_hours: totalHours,\n      target_hours: +targetHours.toFixed(2),\n      late_arrivals: lates,\n      off_days: offDays,\n      avg_checkin: json.avg_checkin_30d || json.avg_checkin_7d || json.avg_checkin || null,\n\n      // components\n      checkin_component_50: +checkinScore50.toFixed(2),\n      hours_component_50:   +hoursScore50.toFixed(2),\n\n      // penalties\n      late_penalty:   +latePenalty.toFixed(2),\n      offday_penalty: +offdayPenalty.toFixed(2),\n      penalties_total:+totalPenalty.toFixed(2),\n\n      // final\n      attendance_score: +attendanceScore.toFixed(2),\n    }\n  });\n}\n\nreturn out;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2848,
+        -688
+      ],
+      "id": "21fd3c86-aaba-4508-b9ee-35d6c872cfa3",
+      "name": "Code7"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1K4HiXyQax6S2VD6TM83cEjEDEQlum_mETvjrO2ilPcg",
+          "mode": "list",
+          "cachedResultName": "Master: Goal Sheets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1K4HiXyQax6S2VD6TM83cEjEDEQlum_mETvjrO2ilPcg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 104911875,
+          "mode": "list",
+          "cachedResultName": "goals",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1K4HiXyQax6S2VD6TM83cEjEDEQlum_mETvjrO2ilPcg/edit#gid=104911875"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2240,
+        -432
+      ],
+      "id": "9a7d3143-8b0e-4b0d-b2a1-d10824ab010b",
+      "name": "Goals",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tWuNqd2CfSKtlG3R",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1fPJF6ngWyH9brpB19j1Bf8-09NucUHkkMxnXSXSDtms",
+          "mode": "list",
+          "cachedResultName": "Attendence App",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fPJF6ngWyH9brpB19j1Bf8-09NucUHkkMxnXSXSDtms/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1214075768,
+          "mode": "list",
+          "cachedResultName": "attendance",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1fPJF6ngWyH9brpB19j1Bf8-09NucUHkkMxnXSXSDtms/edit#gid=1214075768"
+        },
+        "options": {
+          "dataLocationOnSheet": {
+            "values": {
+              "rangeDefinition": "detectAutomatically",
+              "readRowsUntil": "=lastRowInSheet"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2128,
+        -560
+      ],
+      "id": "d1e16c07-02de-4526-8062-5a3498fe53d3",
+      "name": "Attendance",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tWuNqd2CfSKtlG3R",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1K4HiXyQax6S2VD6TM83cEjEDEQlum_mETvjrO2ilPcg",
+          "mode": "list",
+          "cachedResultName": "Master: Goal Sheets",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1K4HiXyQax6S2VD6TM83cEjEDEQlum_mETvjrO2ilPcg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1409019269,
+          "mode": "list",
+          "cachedResultName": "Employee",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1K4HiXyQax6S2VD6TM83cEjEDEQlum_mETvjrO2ilPcg/edit#gid=1409019269"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2144,
+        -752
+      ],
+      "id": "a93690bc-90bd-4c26-8d17-301306034cc8",
+      "name": "Employee",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "tWuNqd2CfSKtlG3R",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Workspaces",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Users",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Attendance",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Goals",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Employee",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Workspaces": {
+      "main": [
+        [
+          {
+            "node": "Prep Vars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prep Vars": {
+      "main": [
+        [
+          {
+            "node": "Get Projects",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Projects": {
+      "main": [
+        [
+          {
+            "node": "Split Projects",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Projects": {
+      "main": [
+        [
+          {
+            "node": "Wait 2s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2s": {
+      "main": [
+        [
+          {
+            "node": "Get Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tasks": {
+      "main": [
+        [
+          {
+            "node": "Split Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Tasks": {
+      "main": [
+        [
+          {
+            "node": "Shape Task Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape Task Row": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Users": {
+      "main": [
+        [
+          {
+            "node": "Split Users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Users": {
+      "main": [
+        [
+          {
+            "node": "Shape User Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shape User Row": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Merge Weekly (tasks+attendance)": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Merge Weekly (tasks+attendance)",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code5": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code6": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Code7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code7": {
+      "main": [
+        [
+          {
+            "node": "Merge Weekly (tasks+attendance)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Goals": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attendance": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Employee": {
+      "main": [
+        [
+          {
+            "node": "Code6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "pinData": {},
+  "triggerCount": 1,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
