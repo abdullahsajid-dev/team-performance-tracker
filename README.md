@@ -1142,15 +1142,14 @@ this software for any purpose, including commercial applications.
 
 ### Professional Links
 
-- **GitHub**: [@yourusername](https://github.com/yourusername)
-- **LinkedIn**: [Your Name](https://linkedin.com/in/yourprofile)
-- **Email**: your.email@example.com
-- **Portfolio**: https://yourportfolio.com
+- **GitHub**: [@abdullahsajid-dev](https://github.com/abdullahsajid-dev)
+- **LinkedIn**: [Abdullah Sajid](https://www.linkedin.com/in/abdullahsajiddev/)
+- **Email**: abdullahsajid.dev@gmail.com
 
 ### Project Maintainer
 
-**[Your Name]**  
-*Performance Analytics Engineer | Workflow Automation Specialist*
+**Abdullah Sajid**  
+*AI Engineer | Workflow Automation Specialist*
 
 ---
 
@@ -1186,3 +1185,4 @@ this software for any purpose, including commercial applications.
 **Version**: 1.0.0  
 **Status**: ✅ Production Ready  
 **Maintenance**: 🟢 Actively Maintained
+
